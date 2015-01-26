@@ -11,18 +11,39 @@ app = Flask(__name__)
 api = restful.Api(app)
 
 
-def validate_name(name):
-    if not name:
-        raise ValidationError('name must not be blank.')
+# class ValidateSets(object):
+#
+# def __init__(self, name):
+# self.name = name
+#
+# def __call__(self, value):
+#         if not value:
+#             raise ValidationError('name must not be blank.')
+#
+#         return value
+#
+#     @staticmethod
+#     def validate_name(name):
+#         if not name:
+#             raise ValidationError('name must not be blank.')
 
 
 class UserSchema(Schema):
-    name = fields.String(validate=validate_name)
+    name = fields.String()
 
 
 class ArtistSchema(Schema):
-    title = fields.String(validate=validate_name)
+    title = fields.String()
     artist = fields.Nested(UserSchema, many=True)
+
+
+@ArtistSchema.validator
+@UserSchema.validator
+def validate_numbers(schema, input_data):
+    if not input_data['name']:
+        raise ValidationError('name must not be blank.')
+    if not input_data['name']:
+        raise ValidationError('name must not be blank.')
 
 
 def odd_number(value, name):
@@ -43,12 +64,12 @@ class HelloWorld(restful.Resource):
 
         json_data = request.get_json()
 
-        result = ArtistSchema().load(json_data)
+        result, errors = ArtistSchema().load(json_data)
 
-        if result.errors:
+        if errors:
             raise Exception("json error: %r" % result.errors)
 
-        return jsonify(result.data)
+        return jsonify(result)
 
 
 api.add_resource(HelloWorld, '/')
